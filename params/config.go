@@ -1325,7 +1325,7 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, headNumber *big.Int, 
 	if isForkTimestampIncompatible(c.OsakaTime, newcfg.OsakaTime, headTimestamp, genesisTimestamp) {
 		return newTimestampCompatError("Osaka fork timestamp", c.OsakaTime, newcfg.OsakaTime)
 	}
-	if isForkTimestampIncompatible(c.UBTTime, newcfg.UBTTime, headTimestamp,genesisTimestamp) {
+	if isForkTimestampIncompatible(c.UBTTime, newcfg.UBTTime, headTimestamp, genesisTimestamp) {
 		return newTimestampCompatError("UBT fork timestamp", c.UBTTime, newcfg.UBTTime)
 	}
 	if isForkTimestampIncompatible(c.BPO1Time, newcfg.BPO1Time, headTimestamp, genesisTimestamp) {
@@ -1434,9 +1434,13 @@ func (c *ChainConfig) LatestFork(time uint64) forks.Fork {
 
 // BlobConfig returns the blob config associated with the provided fork.
 func (c *ChainConfig) BlobConfig(fork forks.Fork) *BlobConfig {
-	// TODO: https://github.com/ethereum-optimism/op-geth/issues/685
-	// This function has a bug.
+	// OP-Stack chains do not support blobs and have no blob schedule.
+	if c.BlobScheduleConfig == nil {
+		return nil
+	}
 	switch fork {
+	case forks.Amsterdam:
+		return c.BlobScheduleConfig.Amsterdam
 	case forks.BPO5:
 		return c.BlobScheduleConfig.BPO5
 	case forks.BPO4:
@@ -1482,6 +1486,8 @@ func (c *ChainConfig) ActiveSystemContracts(time uint64) map[string]common.Addre
 // the fork isn't defined or isn't a time-based fork.
 func (c *ChainConfig) Timestamp(fork forks.Fork) *uint64 {
 	switch {
+	case fork == forks.Amsterdam:
+		return c.AmsterdamTime
 	case fork == forks.BPO5:
 		return c.BPO5Time
 	case fork == forks.BPO4:

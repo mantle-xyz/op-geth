@@ -1232,9 +1232,9 @@ func TestEstimateTotalFee(t *testing.T) {
 			types.L1BlockAddr: {
 				Balance: big.NewInt(0),
 				Storage: map[common.Hash]common.Hash{
-					types.L1BaseFeeSlot:        common.BigToHash(l1BaseFeeVal),
-					types.L1BlobBaseFeeSlot:    common.BigToHash(l1BlobBaseFeeVal),
-					types.L1FeeScalarsSlot:     common.BytesToHash(l1FeeScalarsBytes),
+					types.L1BaseFeeSlot:         common.BigToHash(l1BaseFeeVal),
+					types.L1BlobBaseFeeSlot:     common.BigToHash(l1BlobBaseFeeVal),
+					types.L1FeeScalarsSlot:      common.BytesToHash(l1FeeScalarsBytes),
 					types.OperatorFeeParamsSlot: common.BytesToHash(opFeeParamsBytes),
 				},
 			},
@@ -4721,6 +4721,63 @@ func TestEIP7910Config(t *testing.T) {
 			continue
 		}
 		testRPCResponseWithFile(t, i, result, "eth_config", tt.file)
+	}
+}
+
+func TestEIP7910ConfigWithoutBlobSchedule(t *testing.T) {
+	chainConfig := *params.OptimismTestConfig
+	genesis := core.DefaultHoodiGenesisBlock()
+	genesis.Config = &chainConfig
+
+	server := rpc.NewServer()
+	defer server.Stop()
+	require.NoError(t, server.RegisterName("eth", NewBlockChainAPI(configTimeBackend{nil, genesis, genesis.Timestamp})))
+	client := rpc.DialInProc(server)
+	defer client.Close()
+
+	var result configResponse
+	require.NoError(t, client.CallContext(context.Background(), &result, "eth_config"))
+	require.NotNil(t, result.Current)
+	require.Nil(t, result.Current.BlobSchedule)
+	require.Equal(t, chainConfig.ChainID, (*big.Int)(result.Current.ChainId))
+}
+
+func TestEIP7910ConfigAmsterdam(t *testing.T) {
+	const activation = uint64(100)
+	amsterdamTime, bpo5Time := activation, uint64(0)
+	chainConfig := *params.MergedTestChainConfig
+	chainConfig.AmsterdamTime = &amsterdamTime
+	chainConfig.BPO5Time = &bpo5Time
+	chainConfig.BlobScheduleConfig = &params.BlobScheduleConfig{
+		BPO5:      &params.BlobConfig{Target: 14, Max: 21, UpdateFraction: 11684671},
+		Amsterdam: &params.BlobConfig{Target: 21, Max: 32, UpdateFraction: 20609697},
+	}
+	genesis := &core.Genesis{Config: &chainConfig}
+
+	for _, timestamp := range []uint64{activation - 1, activation} {
+		t.Run(fmt.Sprint(timestamp), func(t *testing.T) {
+			server := rpc.NewServer()
+			defer server.Stop()
+			require.NoError(t, server.RegisterName("eth", NewBlockChainAPI(configTimeBackend{nil, genesis, timestamp})))
+			client := rpc.DialInProc(server)
+			defer client.Close()
+
+			var result configResponse
+			require.NoError(t, client.CallContext(context.Background(), &result, "eth_config"))
+			require.NotNil(t, result.Current)
+			if timestamp < activation {
+				require.Equal(t, chainConfig.BlobScheduleConfig.BPO5, result.Current.BlobSchedule)
+				require.NotNil(t, result.Next)
+				require.Equal(t, activation, result.Next.ActivationTime)
+				require.Equal(t, chainConfig.BlobScheduleConfig.Amsterdam, result.Next.BlobSchedule)
+				require.Equal(t, result.Next, result.Last)
+			} else {
+				require.Equal(t, activation, result.Current.ActivationTime)
+				require.Equal(t, chainConfig.BlobScheduleConfig.Amsterdam, result.Current.BlobSchedule)
+				require.Nil(t, result.Next)
+				require.Nil(t, result.Last)
+			}
+		})
 	}
 }
 
