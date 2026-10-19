@@ -28,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip1559"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip4844"
 	"github.com/ethereum/go-ethereum/core"
@@ -341,6 +342,8 @@ func (sim *simulator) processBlock(ctx context.Context, block *simBlock, header,
 	if header.ParentBeaconRoot != nil {
 		core.ProcessBeaconBlockRoot(*header.ParentBeaconRoot, evm)
 	}
+	// Mantle Hoodi only: write the BVM predeploy code before any transaction.
+	misc.ApplyMantleHoodiBvmUpgrade(sim.chainConfig, header.Time, tracingStateDB)
 	var allLogs []*types.Log
 	for i, call := range block.Calls {
 		// Terminate if the context is cancelled

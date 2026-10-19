@@ -310,7 +310,9 @@ type ChainOverrides struct {
 	// mantle
 	OverrideMantleArsia   *uint64
 	OverrideMantleElysium *uint64
-	ApplyMantleUpgrades   bool
+	// OverrideMantleHoodiBvmUpgrade sets the Mantle Hoodi BVM upgrade time.
+	OverrideMantleHoodiBvmUpgrade *uint64
+	ApplyMantleUpgrades           bool
 }
 
 // apply applies the chain overrides on the supplied chain config.
@@ -363,12 +365,22 @@ func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
 			cfg.MantleArsiaTime = mantleUpgradeChainConfig.MantleArsiaTime
 			cfg.MantleElysiumTime = mantleUpgradeChainConfig.MantleElysiumTime
 		}
+		// Mantle Hoodi bundles only the Hoodi BVM upgrade time. Once scheduled it replaces the
+		// stored or genesis value, as the bundled mainnet and Sepolia times do.
+		if params.BundledMantleHoodiBvmUpgradeTime != nil && cfg.ChainID != nil &&
+			cfg.ChainID.Cmp(params.MantleHoodiChainId) == 0 {
+			t := *params.BundledMantleHoodiBvmUpgradeTime
+			cfg.MantleHoodiBvmUpgradeTime = &t
+		}
 
 		if o.OverrideMantleArsia != nil {
 			cfg.MantleArsiaTime = o.OverrideMantleArsia
 		}
 		if o.OverrideMantleElysium != nil {
 			cfg.MantleElysiumTime = o.OverrideMantleElysium
+		}
+		if o.OverrideMantleHoodiBvmUpgrade != nil {
+			cfg.MantleHoodiBvmUpgradeTime = o.OverrideMantleHoodiBvmUpgrade
 		}
 
 		// override optimism fork times (canyon/ecotone/fjord/granite/holocene/isthmus/jovian)

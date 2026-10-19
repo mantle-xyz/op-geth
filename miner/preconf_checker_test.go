@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
+	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip1559"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -1254,6 +1255,43 @@ func TestNextBlockEnv_TimeAdvancesByBlockInterval(t *testing.T) {
 	// otherwise the TIMESTAMP opcode would return N's time instead of N+1's.
 	if got := next.evm.Context.Time; got != want {
 		t.Fatalf("EVM block context Time=%d, want %d (TIMESTAMP opcode would read the wrong block's time)", got, want)
+	}
+}
+
+// TestNextBlockEnv_HoodiBvmUpgrade locks the admission env of the Mantle Hoodi BVM upgrade
+// activation block: the code must already be written when preconf txs are simulated against
+// block N+1, otherwise admission runs them against the pre-upgrade code. The sealed env's state
+// must stay untouched, and later blocks must not write again.
+func TestNextBlockEnv_HoodiBvmUpgrade(t *testing.T) {
+	bc := newArsiaBlockchain(t)
+	upgrade := uint64(1000 + preconfL2BlockTime)
+	hoodi := *bc.Config()
+	hoodi.ChainID = params.MantleHoodiChainId
+	hoodi.MantleHoodiBvmUpgradeTime = &upgrade
+
+	for _, tc := range []struct {
+		sealedTime uint64
+		write      bool
+	}{
+		{1000 - preconfL2BlockTime, false},
+		{1000, true},
+		{1000 + preconfL2BlockTime, false},
+	} {
+		env := newTestEnv(t, bc, sizeTestHeader(), 30_000_000)
+		env.header.Time = tc.sealedTime
+		env.evm = vm.NewEVM(core.NewEVMBlockContext(env.header, bc, nil, &hoodi, env.state), env.state, &hoodi, vm.Config{})
+
+		next := env.nextBlockEnv(bc)
+
+		if got := next.state.GetCodeHash(misc.MantleLegacyERC20MNTAddr) == misc.MantleLegacyERC20MNTCodeHash; got != tc.write {
+			t.Fatalf("sealed N.Time=%d: N+1 admission state has the upgraded BVM_MNT code=%v, want %v", tc.sealedTime, got, tc.write)
+		}
+		if got := next.state.GetCodeHash(misc.MantleBvmEthAddr) == misc.MantleBvmEthCodeHash; got != tc.write {
+			t.Fatalf("sealed N.Time=%d: N+1 admission state has the upgraded BVM_ETH code=%v, want %v", tc.sealedTime, got, tc.write)
+		}
+		if env.state.Exist(misc.MantleLegacyERC20MNTAddr) {
+			t.Fatalf("sealed N.Time=%d: nextBlockEnv wrote the upgrade into the sealed env's state", tc.sealedTime)
+		}
 	}
 }
 

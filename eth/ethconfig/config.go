@@ -226,6 +226,8 @@ type Config struct {
 	// OverrideMantle* will take into effect if and only if ApplyMantleUpgrades is true.
 	OverrideMantleArsia   *uint64 `toml:",omitempty"`
 	OverrideMantleElysium *uint64 `toml:",omitempty"`
+
+	OverrideMantleHoodiBvmUpgrade *uint64 `toml:",omitempty"`
 	// ApplyMantleUpgrades requests the node to update chain-configuration from the mantle config.
 	// ApplyMantleUpgrades is acting as a toggle for enabling/disabling all mantle updates to the chain config.
 	ApplyMantleUpgrades bool `toml:",omitempty"`

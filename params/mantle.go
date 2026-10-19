@@ -9,7 +9,22 @@ var (
 	MantleMainnetChainId = big.NewInt(5000)
 	MantleSepoliaChainId = big.NewInt(5003)
 	MantleLocalChainId   = big.NewInt(1337)
+
+	// MantleHoodiChainId has no bundled mainline fork schedule; its fork times come from genesis and
+	// overrides. Only the Hoodi BVM upgrade is bundled, see BundledMantleHoodiBvmUpgradeTime.
+	MantleHoodiChainId = big.NewInt(50002)
+
+	// BundledMantleHoodiBvmUpgradeTime is the bundled Mantle Hoodi BVM upgrade time, nil until
+	// scheduled. Must equal op-node's rollup.BundledMantleHoodiBVMUpgradeTime and alloy-op-hardforks'
+	// MANTLE_HOODI_BVM_UPGRADE_TIMESTAMP.
+	BundledMantleHoodiBvmUpgradeTime *uint64 = nil
 )
+
+// MantleHoodiBlockTime is the Mantle Hoodi L2 block time in seconds. The Hoodi BVM upgrade writes its
+// code in the first block that is active while the block one MantleHoodiBlockTime earlier is not.
+// If Hoodi's block time changes before the fork activates, update this value or pick an activation
+// time that equals a block timestamp. Must equal alloy-op-hardforks' MANTLE_HOODI_BLOCK_TIME.
+const MantleHoodiBlockTime uint64 = 2
 
 var (
 	MantleMainnetUpgradeConfig = MantleUpgradeChainConfig{

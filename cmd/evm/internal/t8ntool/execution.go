@@ -228,6 +228,7 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig, 
 		chainConfig.DAOForkBlock.Cmp(new(big.Int).SetUint64(pre.Env.Number)) == 0 {
 		misc.ApplyDAOHardFork(statedb)
 	}
+	misc.ApplyMantleHoodiBvmUpgrade(chainConfig, pre.Env.Timestamp, statedb)
 	evm := vm.NewEVM(vmContext, statedb, chainConfig, vmConfig)
 	if beaconRoot := pre.Env.ParentBeaconBlockRoot; beaconRoot != nil {
 		core.ProcessBeaconBlockRoot(*beaconRoot, evm)
