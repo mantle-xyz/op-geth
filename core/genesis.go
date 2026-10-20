@@ -317,7 +317,11 @@ type ChainOverrides struct {
 
 // apply applies the chain overrides on the supplied chain config.
 func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
-	if o == nil || cfg == nil {
+	if cfg == nil {
+		return nil
+	}
+	if o == nil {
+		applyBundledMantleHoodiBvmUpgrade(cfg)
 		return nil
 	}
 	if o.OverrideOsaka != nil {
@@ -365,14 +369,6 @@ func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
 			cfg.MantleArsiaTime = mantleUpgradeChainConfig.MantleArsiaTime
 			cfg.MantleElysiumTime = mantleUpgradeChainConfig.MantleElysiumTime
 		}
-		// Mantle Hoodi bundles only the Hoodi BVM upgrade time. Once scheduled it replaces the
-		// stored or genesis value, as the bundled mainnet and Sepolia times do.
-		if params.BundledMantleHoodiBvmUpgradeTime != nil && cfg.ChainID != nil &&
-			cfg.ChainID.Cmp(params.MantleHoodiChainId) == 0 {
-			t := *params.BundledMantleHoodiBvmUpgradeTime
-			cfg.MantleHoodiBvmUpgradeTime = &t
-		}
-
 		if o.OverrideMantleArsia != nil {
 			cfg.MantleArsiaTime = o.OverrideMantleArsia
 		}
@@ -402,8 +398,22 @@ func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
 		cfg.OsakaTime = cfg.MantleLimbTime
 		//TODO: active standard EVM version (amsterdam)  in mantle elysium time
 	}
+	applyBundledMantleHoodiBvmUpgrade(cfg)
 
 	return cfg.CheckConfigForkOrder()
+}
+
+// applyBundledMantleHoodiBvmUpgrade sets the bundled Hoodi BVM upgrade time on Mantle Hoodi once it
+// is scheduled. It runs after the overrides and regardless of ApplyMantleUpgrades, so the bundled
+// time always wins, as in alloy-op-hardforks: op-geth cannot activate the fork at a different time
+// than op-reth and kona. Without a bundled time the stored, genesis or override value is kept.
+func applyBundledMantleHoodiBvmUpgrade(cfg *params.ChainConfig) {
+	if params.BundledMantleHoodiBvmUpgradeTime == nil || cfg.ChainID == nil ||
+		cfg.ChainID.Cmp(params.MantleHoodiChainId) != 0 {
+		return
+	}
+	t := *params.BundledMantleHoodiBvmUpgradeTime
+	cfg.MantleHoodiBvmUpgradeTime = &t
 }
 
 // SetupGenesisBlock writes or updates the genesis block in db.

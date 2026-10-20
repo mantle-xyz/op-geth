@@ -75,8 +75,8 @@ func TestMantleHoodiBvmUpgradeChain(t *testing.T) {
 	}
 }
 
-// The fork time can be scheduled on an existing Hoodi database through the override, which is how
-// op-geth nodes (initialised from genesis once) pick it up.
+// While no bundled time is scheduled, the override schedules the fork on an existing Hoodi
+// database (initialised from genesis once). This is for local testing only.
 func TestMantleHoodiBvmUpgradeOverride(t *testing.T) {
 	config := *params.TestChainConfig
 	config.ChainID = params.MantleHoodiChainId
@@ -99,15 +99,16 @@ func TestMantleHoodiBvmUpgradeOverride(t *testing.T) {
 	}
 }
 
-// Once scheduled, the bundled Hoodi time replaces the stored one on an existing database, and the
-// override still takes precedence over it.
+// Once scheduled, the bundled Hoodi time is authoritative, as in alloy-op-hardforks: it replaces
+// the stored one on an existing database and wins over the override, with or without
+// ApplyMantleUpgrades. Other chains keep their stored value.
 func TestMantleHoodiBvmUpgradeBundled(t *testing.T) {
 	bundled := uint64(2_000)
 	prev := params.BundledMantleHoodiBvmUpgradeTime
 	params.BundledMantleHoodiBvmUpgradeTime = &bundled
 	t.Cleanup(func() { params.BundledMantleHoodiBvmUpgradeTime = prev })
 
-	setup := func(chainID *big.Int, override *uint64) *params.ChainConfig {
+	setup := func(chainID *big.Int, overrides *ChainOverrides) *params.ChainConfig {
 		stored := uint64(1_000)
 		config := *params.TestChainConfig
 		config.ChainID = chainID
@@ -118,24 +119,26 @@ func TestMantleHoodiBvmUpgradeBundled(t *testing.T) {
 		if _, _, _, err := SetupGenesisBlockWithOverride(db, tdb, gspec, nil, nil); err != nil {
 			t.Fatal(err)
 		}
-		cfg, _, _, err := SetupGenesisBlockWithOverride(db, tdb, nil, &ChainOverrides{
-			ApplyMantleUpgrades:           true,
-			OverrideMantleHoodiBvmUpgrade: override,
-		}, nil)
+		cfg, _, _, err := SetupGenesisBlockWithOverride(db, tdb, nil, overrides, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
 		return cfg
 	}
 
-	if got := setup(params.MantleHoodiChainId, nil).MantleHoodiBvmUpgradeTime; got == nil || *got != bundled {
-		t.Fatalf("hoodi: got %v, want bundled %d", got, bundled)
-	}
 	override := uint64(3_000)
-	if got := setup(params.MantleHoodiChainId, &override).MantleHoodiBvmUpgradeTime; got == nil || *got != override {
-		t.Fatalf("hoodi with override: got %v, want %d", got, override)
+	for name, overrides := range map[string]*ChainOverrides{
+		"mantle upgrades":               {ApplyMantleUpgrades: true},
+		"override":                      {ApplyMantleUpgrades: true, OverrideMantleHoodiBvmUpgrade: &override},
+		"mantle upgrades disabled":      {ApplyMantleUpgrades: false},
+		"override, mantle upgrades off": {ApplyMantleUpgrades: false, OverrideMantleHoodiBvmUpgrade: &override},
+		"no overrides":                  nil,
+	} {
+		if got := setup(params.MantleHoodiChainId, overrides).MantleHoodiBvmUpgradeTime; got == nil || *got != bundled {
+			t.Fatalf("hoodi, %s: got %v, want bundled %d", name, got, bundled)
+		}
 	}
-	if got := setup(params.TestChainConfig.ChainID, nil).MantleHoodiBvmUpgradeTime; got == nil || *got != 1_000 {
+	if got := setup(params.TestChainConfig.ChainID, &ChainOverrides{ApplyMantleUpgrades: true}).MantleHoodiBvmUpgradeTime; got == nil || *got != 1_000 {
 		t.Fatalf("other chain: got %v, want stored 1000", got)
 	}
 }
