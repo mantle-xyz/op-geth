@@ -297,7 +297,7 @@ var (
 	}
 	OverrideMantleHoodiBvmUpgrade = &cli.Uint64Flag{
 		Name:     "override.hoodibvmupgrade",
-		Usage:    "Manually specify the Mantle Hoodi BVM upgrade timestamp; ignored once a bundled time is scheduled",
+		Usage:    "Manually specify the Mantle Hoodi BVM upgrade timestamp, overriding the bundled setting",
 		Category: flags.EthCategory,
 	}
 	OverrideGenesisFlag = &cli.StringFlag{

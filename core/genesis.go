@@ -308,20 +308,16 @@ type ChainOverrides struct {
 	OverrideOptimism         *bool
 
 	// mantle
-	OverrideMantleArsia   *uint64
-	OverrideMantleElysium *uint64
+	OverrideMantleArsia *uint64
 	// OverrideMantleHoodiBvmUpgrade sets the Mantle Hoodi BVM upgrade time.
 	OverrideMantleHoodiBvmUpgrade *uint64
+	OverrideMantleElysium         *uint64
 	ApplyMantleUpgrades           bool
 }
 
 // apply applies the chain overrides on the supplied chain config.
 func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
-	if cfg == nil {
-		return nil
-	}
-	if o == nil {
-		applyBundledMantleHoodiBvmUpgrade(cfg)
+	if o == nil || cfg == nil {
 		return nil
 	}
 	if o.OverrideOsaka != nil {
@@ -367,16 +363,18 @@ func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
 			cfg.MantleSkadiTime = mantleUpgradeChainConfig.MantleSkadiTime
 			cfg.MantleLimbTime = mantleUpgradeChainConfig.MantleLimbTime
 			cfg.MantleArsiaTime = mantleUpgradeChainConfig.MantleArsiaTime
+			cfg.MantleHoodiBvmUpgradeTime = mantleUpgradeChainConfig.MantleHoodiBvmUpgradeTime
 			cfg.MantleElysiumTime = mantleUpgradeChainConfig.MantleElysiumTime
 		}
+
 		if o.OverrideMantleArsia != nil {
 			cfg.MantleArsiaTime = o.OverrideMantleArsia
 		}
-		if o.OverrideMantleElysium != nil {
-			cfg.MantleElysiumTime = o.OverrideMantleElysium
-		}
 		if o.OverrideMantleHoodiBvmUpgrade != nil {
 			cfg.MantleHoodiBvmUpgradeTime = o.OverrideMantleHoodiBvmUpgrade
+		}
+		if o.OverrideMantleElysium != nil {
+			cfg.MantleElysiumTime = o.OverrideMantleElysium
 		}
 
 		// override optimism fork times (canyon/ecotone/fjord/granite/holocene/isthmus/jovian)
@@ -398,22 +396,8 @@ func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
 		cfg.OsakaTime = cfg.MantleLimbTime
 		//TODO: active standard EVM version (amsterdam)  in mantle elysium time
 	}
-	applyBundledMantleHoodiBvmUpgrade(cfg)
 
 	return cfg.CheckConfigForkOrder()
-}
-
-// applyBundledMantleHoodiBvmUpgrade sets the bundled Hoodi BVM upgrade time on Mantle Hoodi once it
-// is scheduled. It runs after the overrides and regardless of ApplyMantleUpgrades, so the bundled
-// time always wins, as in alloy-op-hardforks: op-geth cannot activate the fork at a different time
-// than op-reth and kona. Without a bundled time the stored, genesis or override value is kept.
-func applyBundledMantleHoodiBvmUpgrade(cfg *params.ChainConfig) {
-	if params.BundledMantleHoodiBvmUpgradeTime == nil || cfg.ChainID == nil ||
-		cfg.ChainID.Cmp(params.MantleHoodiChainId) != 0 {
-		return
-	}
-	t := *params.BundledMantleHoodiBvmUpgradeTime
-	cfg.MantleHoodiBvmUpgradeTime = &t
 }
 
 // SetupGenesisBlock writes or updates the genesis block in db.
