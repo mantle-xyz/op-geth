@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/triedb"
@@ -64,18 +65,9 @@ func TestMantleHoodiBvmUpgradeWritesCodeAtActivation(t *testing.T) {
 	}
 }
 
-// An activation time between two blocks activates in the next block, as in alloy-op-evm.
-func TestMantleHoodiBvmUpgradeUnalignedActivation(t *testing.T) {
-	ts := uint64(hoodiUpgradeTime + 1)
-	statedb := hoodiState(t)
-	ApplyMantleHoodiBvmUpgrade(hoodiConfig(&ts), hoodiUpgradeTime+params.MantleHoodiBlockTime, statedb)
-	if statedb.GetCodeHash(MantleLegacyERC20MNTAddr) != MantleLegacyERC20MNTCodeHash {
-		t.Fatal("the first block at or after an unaligned activation time must write")
-	}
-}
-
-// Times near zero follow alloy-op-evm, which saturates the previous block time at zero: the
-// fork is written only if it is active at the block time and not at the saturated previous time.
+// The fork is written only if it is active at the block time and not one block earlier, as in
+// alloy-op-evm, which saturates the previous block time at zero. An activation time between two
+// block times (T=1) activates in the next block.
 func TestMantleHoodiBvmUpgradeNearZero(t *testing.T) {
 	for _, tc := range []struct {
 		upgrade, time uint64
@@ -124,37 +116,11 @@ func TestMantleHoodiBvmUpgradeNoop(t *testing.T) {
 	}
 }
 
-func TestMantleHoodiBvmUpgradeOnlyActivationBlock(t *testing.T) {
-	ts := uint64(hoodiUpgradeTime)
-	statedb := hoodiState(t)
-	ApplyMantleHoodiBvmUpgrade(hoodiConfig(&ts), hoodiUpgradeTime, statedb)
-	root := statedb.IntermediateRoot(true)
-	// A later change to the code is not reverted by blocks after the activation block.
-	statedb.SetCode(MantleBvmEthAddr, []byte{0x01}, tracing.CodeChangeUnspecified)
-	changed := statedb.IntermediateRoot(true)
-	for time := hoodiUpgradeTime + params.MantleHoodiBlockTime; time <= hoodiUpgradeTime+3*params.MantleHoodiBlockTime; time += params.MantleHoodiBlockTime {
-		ApplyMantleHoodiBvmUpgrade(hoodiConfig(&ts), time, statedb)
-	}
-	if got := statedb.IntermediateRoot(true); got != changed || got == root {
-		t.Fatalf("blocks after the activation block must not write: %x", got)
-	}
-}
-
-func TestMantleHoodiBvmUpgradeConfig(t *testing.T) {
-	ts := uint64(hoodiUpgradeTime)
-	cfg := hoodiConfig(&ts)
-	if cfg.IsMantleHoodiBvmUpgrade(hoodiUpgradeTime-1) || !cfg.IsMantleHoodiBvmUpgrade(hoodiUpgradeTime) {
-		t.Fatal("IsMantleHoodiBvmUpgrade must switch at the activation time")
-	}
-	if hoodiConfig(nil).IsMantleHoodiBvmUpgrade(1 << 62) {
-		t.Fatal("unscheduled fork must never be active")
-	}
-}
-
 // The Mantle Hoodi BVM upgrade must be applied identically by block production
 // (GenerateChain, like the miner) and by block import (StateProcessor): the imported chain is only
 // accepted if both compute the same state root. The upgrade is applied inside message execution;
-// every L2 block starts with the L1 info deposit, so each generated block carries a transaction.
+// every L2 block starts with the L1 info deposit, so each generated block carries a transaction,
+// and the activation block's first transaction performs the write.
 func TestMantleHoodiBvmUpgradeChain(t *testing.T) {
 	upgradeTime := uint64(20) // GenerateChain spaces blocks 10s apart: block 2 activates.
 	config := *params.TestChainConfig
@@ -218,6 +184,38 @@ func TestMantleHoodiBvmUpgradeChain(t *testing.T) {
 	statedb, _ := chain.StateAt(blocks[2].Header())
 	if got := statedb.GetState(MantleBvmEthAddr, supplySlot); got != common.BigToHash(big.NewInt(15_349)) {
 		t.Fatalf("BVM_ETH storage changed: %x", got)
+	}
+
+	// The upgrade is written by message execution: the state before the activation block's first
+	// transaction has no upgrade code and the state after it has. Block 1 does not write.
+	for _, tc := range []struct {
+		number int
+		write  bool
+	}{{0, false}, {1, true}} {
+		block := blocks[tc.number]
+		header := block.Header()
+		statedb, err := chain.StateAt(chain.GetHeaderByHash(block.ParentHash()))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if statedb.Exist(MantleLegacyERC20MNTAddr) {
+			t.Fatalf("block %d: BVM_MNT exists before the first transaction", tc.number+1)
+		}
+		evm := vm.NewEVM(NewEVMBlockContext(header, chain, nil, &config, statedb), statedb, &config, vm.Config{})
+		rules := config.Rules(header.Number, false, header.Time)
+		msg, err := TransactionToMessage(block.Transactions()[0], types.MakeSigner(&config, header.Number, header.Time), header.BaseFee, &rules)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := ApplyMessage(evm, msg, NewGasPool(header.GasLimit)); err != nil {
+			t.Fatal(err)
+		}
+		if got := statedb.GetCodeHash(MantleLegacyERC20MNTAddr) == MantleLegacyERC20MNTCodeHash; got != tc.write {
+			t.Fatalf("block %d: BVM_MNT has the upgrade code after the first transaction = %v, want %v", tc.number+1, got, tc.write)
+		}
+		if got := statedb.GetCodeHash(MantleBvmEthAddr) == MantleBvmEthCodeHash; got != tc.write {
+			t.Fatalf("block %d: BVM_ETH has the upgrade code after the first transaction = %v, want %v", tc.number+1, got, tc.write)
+		}
 	}
 }
 

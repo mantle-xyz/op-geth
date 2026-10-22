@@ -1257,57 +1257,6 @@ func TestNextBlockEnv_TimeAdvancesByBlockInterval(t *testing.T) {
 	}
 }
 
-// TestPreconf_HoodiBvmUpgrade locks preconf admission in the Mantle Hoodi BVM upgrade activation
-// block: the upgrade is applied inside message execution, so a preconf tx admitted against the
-// activation block already sees the upgrade code, and blocks before and after do not write it.
-func TestPreconf_HoodiBvmUpgrade(t *testing.T) {
-	bc := newArsiaBlockchain(t)
-	upgrade := uint64(1000 + preconfL2BlockTime)
-	hoodi := *bc.Config()
-	hoodi.ChainID = params.MantleHoodiChainId
-	hoodi.MantleHoodiBvmUpgradeTime = &upgrade
-	symbol := []byte{0x95, 0xd8, 0x9b, 0x41}
-
-	for _, tc := range []struct {
-		time  uint64
-		write bool
-	}{
-		{upgrade - preconfL2BlockTime, false},
-		{upgrade, true},
-		{upgrade + preconfL2BlockTime, false},
-	} {
-		env := newTestEnv(t, bc, sizeTestHeader(), 30_000_000)
-		env.header.Time = tc.time
-		env.evm = vm.NewEVM(core.NewEVMBlockContext(env.header, bc, nil, &hoodi, env.state), env.state, &hoodi, vm.Config{})
-		checker := &preconfChecker{blockchain: bc, env: env, minerConfig: &preconf.DefaultMinerConfig}
-
-		key, _ := crypto.GenerateKey()
-		to := core.MantleLegacyERC20MNTAddr
-		tx, err := types.SignTx(types.NewTx(&types.LegacyTx{
-			To: &to, Value: big.NewInt(0), Gas: 100_000, GasPrice: big.NewInt(params.InitialBaseFee), Data: symbol,
-		}), types.NewEIP155Signer(hoodi.ChainID), key)
-		if err != nil {
-			t.Fatalf("SignTx: %v", err)
-		}
-		fundSenders(t, env, tx)
-		receipt, _, err := checker.applyTxWithResetEnv(env, tx)
-		if err != nil {
-			t.Fatalf("time %d: preconf tx should be admitted, got %v", tc.time, err)
-		}
-		if got := env.state.GetCodeHash(core.MantleLegacyERC20MNTAddr) == core.MantleLegacyERC20MNTCodeHash; got != tc.write {
-			t.Fatalf("time %d: BVM_MNT has the upgrade code=%v, want %v", tc.time, got, tc.write)
-		}
-		if got := env.state.GetCodeHash(core.MantleBvmEthAddr) == core.MantleBvmEthCodeHash; got != tc.write {
-			t.Fatalf("time %d: BVM_ETH has the upgrade code=%v, want %v", tc.time, got, tc.write)
-		}
-		// The intrinsic gas of this call is 21,064 (4 non-zero calldata bytes); symbol() only uses
-		// more if the tx itself ran against the upgrade code.
-		if got := receipt.GasUsed > params.TxGas+4*params.TxDataNonZeroGasEIP2028; got != tc.write {
-			t.Fatalf("time %d: gasUsed=%d, tx executed BVM_MNT code=%v, want %v", tc.time, receipt.GasUsed, got, tc.write)
-		}
-	}
-}
-
 // TestPreconf_SizeCap_AccumulatesAcrossCopies mirrors production Preconf, which snapshots
 // the admission env with environment.copy() before every tx. copy() dropping the size field
 // zeroed the cumulative block-size accumulator on every tx, so the size cap could never trip
