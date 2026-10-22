@@ -7,16 +7,15 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
 
-// stateAtTransaction rebuilds the pre-transaction state of a block for tracing. In the Mantle Hoodi
-// BVM upgrade activation block it must already contain the upgrade code, for every transaction
-// index, since the code is written before the block's first transaction.
+// stateAtTransaction rebuilds the pre-transaction state of a block for tracing. The Mantle Hoodi
+// BVM upgrade is applied inside the activation block's first transaction, so the state before that
+// transaction has no upgrade code and the state before every later transaction has it.
 func TestHoodiBvmUpgradeStateAtTransaction(t *testing.T) {
 	upgradeTime := uint64(20) // GenerateChain spaces blocks 10s apart: block 2 activates.
 	config := *params.TestChainConfig
@@ -64,10 +63,10 @@ func TestHoodiBvmUpgradeStateAtTransaction(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			got := statedb.GetCodeHash(misc.MantleLegacyERC20MNTAddr) == misc.MantleLegacyERC20MNTCodeHash
+			got := statedb.GetCodeHash(core.MantleLegacyERC20MNTAddr) == core.MantleLegacyERC20MNTCodeHash
 			release()
-			if got != tc.write {
-				t.Fatalf("block %d tx %d: BVM_MNT has the upgrade code = %v, want %v", tc.number, txIndex, got, tc.write)
+			if want := tc.write && txIndex > 0; got != want {
+				t.Fatalf("block %d tx %d: BVM_MNT has the upgrade code = %v, want %v", tc.number, txIndex, got, !got)
 			}
 		}
 	}

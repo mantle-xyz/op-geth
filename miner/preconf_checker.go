@@ -14,7 +14,6 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip1559"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -517,9 +516,6 @@ func (env *environment) nextBlockEnv(chain core.ChainContext) *environment {
 	}
 
 	state := env.state.Copy()
-	// Mantle Hoodi only: block N+1 may be the BVM upgrade activation block; write the code before
-	// any preconf tx is admitted against it, as worker.go does for the sealed block.
-	misc.ApplyMantleHoodiBvmUpgrade(chainConfig, header.Time, state)
 	return &environment{
 		// signer is never read on the preconf admission path (applyPreconfTransaction
 		// inlines MakeSigner per tx); rebuild it by block height only to keep it valid

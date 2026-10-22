@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus/beacon"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/internal/ethapi/override"
@@ -33,7 +32,7 @@ func TestHoodiBvmUpgradeSimulateV1(t *testing.T) {
 	backend := newTestBackend(t, 1, gspec, beacon.New(ethash.NewFaker()), func(i int, b *core.BlockGen) {})
 	api := NewBlockChainAPI(backend)
 
-	mnt := misc.MantleLegacyERC20MNTAddr
+	mnt := core.MantleLegacyERC20MNTAddr
 	symbol := hexutil.Bytes{0x95, 0xd8, 0x9b, 0x41}
 	call := TransactionArgs{From: &acc.addr, To: &mnt, Input: &symbol}
 	timeOf := func(t uint64) *override.BlockOverrides {

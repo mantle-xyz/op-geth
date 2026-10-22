@@ -751,6 +751,12 @@ func (st *stateTransition) execute() (*ExecutionResult, error) {
 		st.mintBVMETH(ethValue, rules)
 	}
 
+	// Mantle Hoodi only: write the BVM predeploy code in the activation block. Every execution
+	// path applies messages here, and every L2 block starts with the L1 info deposit, so the first
+	// transaction of the activation block performs the write. Applied before the snapshot so that
+	// a failed deposit does not revert it.
+	ApplyMantleHoodiBvmUpgrade(st.evm.ChainConfig(), st.evm.Context.Time, st.state)
+
 	snap := st.state.Snapshot()
 	// Will be reverted if failed
 

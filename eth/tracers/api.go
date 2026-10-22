@@ -31,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -383,8 +382,6 @@ func (api *API) traceChain(start, end *types.Block, config *TraceConfig, closed 
 			if api.backend.ChainConfig().IsPrague(next.Number(), next.Time()) {
 				core.ProcessParentBlockHash(next.ParentHash(), evm)
 			}
-			// Mantle Hoodi only: write the BVM predeploy code before any transaction.
-			misc.ApplyMantleHoodiBvmUpgrade(api.backend.ChainConfig(), next.Time(), statedb)
 			evm.Release()
 			// Clean out any pending release functions of trace state. Note this
 			// step must be done after constructing tracing state, because the
@@ -568,8 +565,6 @@ func (api *API) IntermediateRoots(ctx context.Context, hash common.Hash, config 
 	if chainConfig.IsPrague(block.Number(), block.Time()) {
 		core.ProcessParentBlockHash(block.ParentHash(), evm)
 	}
-	// Mantle Hoodi only: write the BVM predeploy code before any transaction.
-	misc.ApplyMantleHoodiBvmUpgrade(chainConfig, block.Time(), statedb)
 	for i, tx := range block.Transactions() {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -631,8 +626,6 @@ func (api *API) traceBlock(ctx context.Context, block *types.Block, config *Trac
 	if api.backend.ChainConfig().IsPrague(block.Number(), block.Time()) {
 		core.ProcessParentBlockHash(block.ParentHash(), evm)
 	}
-	// Mantle Hoodi only: write the BVM predeploy code before any transaction.
-	misc.ApplyMantleHoodiBvmUpgrade(api.backend.ChainConfig(), block.Time(), statedb)
 
 	// JS tracers have high overhead. In this case run a parallel
 	// process that generates states in one thread and traces txes
@@ -812,8 +805,6 @@ func (api *API) standardTraceBlockToFile(ctx context.Context, block *types.Block
 	if chainConfig.IsPrague(block.Number(), block.Time()) {
 		core.ProcessParentBlockHash(block.ParentHash(), evm)
 	}
-	// Mantle Hoodi only: write the BVM predeploy code before any transaction.
-	misc.ApplyMantleHoodiBvmUpgrade(chainConfig, block.Time(), statedb)
 	rules := chainConfig.Rules(block.Number(), false, block.Time())
 	for i, tx := range block.Transactions() {
 		// Prepare the transaction for un-traced execution

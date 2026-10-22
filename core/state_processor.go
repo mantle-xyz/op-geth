@@ -98,8 +98,6 @@ func (p *StateProcessor) Process(ctx context.Context, block *types.Block, stated
 	if config.IsPrague(block.Number(), block.Time()) || config.IsUBT(block.Number(), block.Time()) {
 		ProcessParentBlockHash(block.ParentHash(), evm)
 	}
-	// Mantle Hoodi only: write the BVM predeploy code before any transaction.
-	misc.ApplyMantleHoodiBvmUpgrade(config, block.Time(), tracingStateDB)
 
 	rules := evm.ChainConfig().Rules(block.Number(), false, header.Time)
 

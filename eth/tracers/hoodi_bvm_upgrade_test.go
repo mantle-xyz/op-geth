@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -36,7 +35,7 @@ func newHoodiBvmUpgradeBackend(t *testing.T) *testBackend {
 		Alloc:  types.GenesisAlloc{accounts[0].addr: {Balance: big.NewInt(params.Ether)}},
 	}
 	signer := types.LatestSigner(&config)
-	to := misc.MantleLegacyERC20MNTAddr
+	to := core.MantleLegacyERC20MNTAddr
 	backend := newTestBackend(t, 3, genesis, func(i int, b *core.BlockGen) {
 		if i != 1 {
 			return
@@ -95,6 +94,9 @@ func TestHoodiBvmUpgradeIntermediateRoots(t *testing.T) {
 	statedb, err := backend.chain.StateAt(block.Header())
 	if err != nil {
 		t.Fatal(err)
+	}
+	if statedb.GetCodeHash(core.MantleLegacyERC20MNTAddr) != core.MantleLegacyERC20MNTCodeHash {
+		t.Fatal("activation block state has no BVM_MNT upgrade code")
 	}
 	statedb.SubBalance(block.Coinbase(), ethash.ConstantinopleBlockReward, tracing.BalanceChangeUnspecified)
 	if want := statedb.IntermediateRoot(true); len(roots) != 1 || roots[0] != want {

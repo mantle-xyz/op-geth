@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus/misc"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip1559"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip4844"
 	"github.com/ethereum/go-ethereum/core"
@@ -459,8 +458,6 @@ func (miner *Miner) prepareWork(ctx context.Context, genParams *generateParams, 
 	if miner.chainConfig.IsPrague(header.Number, header.Time) {
 		core.ProcessParentBlockHash(header.ParentHash, env.evm)
 	}
-	// Mantle Hoodi only: write the BVM predeploy code before any transaction.
-	misc.ApplyMantleHoodiBvmUpgrade(miner.chainConfig, header.Time, env.state)
 
 	if miner.chainConfig.IsMantleArsia(parent.Time) {
 		if len(genParams.txs) == 0 || !genParams.txs[0].IsDepositTx() {
