@@ -295,6 +295,11 @@ var (
 		Usage:    "Manually specify the MantleElysium fork timestamp, overriding the bundled setting",
 		Category: flags.EthCategory,
 	}
+	OverrideMantleHoodiBvmUpgrade = &cli.Uint64Flag{
+		Name:     "override.hoodibvmupgrade",
+		Usage:    "Manually specify the Mantle Hoodi BVM upgrade timestamp, overriding the bundled setting",
+		Category: flags.EthCategory,
+	}
 	OverrideGenesisFlag = &cli.StringFlag{
 		Name:     "override.genesis",
 		Usage:    "Load genesis block and configuration from file at this path",
