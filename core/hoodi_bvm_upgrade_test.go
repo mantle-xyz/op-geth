@@ -109,7 +109,7 @@ func TestMantleHoodiBvmUpgradeNoop(t *testing.T) {
 		time   uint64
 	}{
 		"before activation":      {hoodiConfig(&ts), hoodiUpgradeTime - 1},
-		"after activation block": {hoodiConfig(&ts), hoodiUpgradeTime + params.MantleHoodiBlockTime},
+		"after activation block": {hoodiConfig(&ts), hoodiUpgradeTime + params.MantleBlockTime},
 		"not scheduled":          {hoodiConfig(nil), 1 << 62},
 		"mantle mainnet":         {&params.ChainConfig{ChainID: params.MantleMainnetChainId, MantleHoodiBvmUpgradeTime: &ts}, hoodiUpgradeTime},
 		"mantle sepolia":         {&params.ChainConfig{ChainID: params.MantleSepoliaChainId, MantleHoodiBvmUpgradeTime: &ts}, hoodiUpgradeTime},

@@ -21,7 +21,7 @@ import (
 // transactions, so op-geth and op-reth compute the same state root.
 //
 // The write happens once, in the activation block: the first block that is active while the block
-// one params.MantleHoodiBlockTime earlier is not. alloy-op-evm uses the same condition rather than
+// one params.MantleBlockTime earlier is not. alloy-op-evm uses the same condition rather than
 // Canyon's "time equals the fork time" check, so both clients write in the same block whether or
 // not the activation time equals a block timestamp. Storage, balance and nonce are left untouched.
 //
@@ -70,8 +70,8 @@ func init() {
 func ApplyMantleHoodiBvmUpgrade(config *params.ChainConfig, time uint64, statedb vm.StateDB) {
 	// The previous block time saturates at zero, as in alloy-op-evm.
 	var prev uint64
-	if time > params.MantleHoodiBlockTime {
-		prev = time - params.MantleHoodiBlockTime
+	if time > params.MantleBlockTime {
+		prev = time - params.MantleBlockTime
 	}
 	if config.ChainID == nil || config.ChainID.Cmp(params.MantleHoodiChainId) != 0 ||
 		!config.IsMantleHoodiBvmUpgrade(time) || config.IsMantleHoodiBvmUpgrade(prev) {
