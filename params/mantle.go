@@ -12,10 +12,12 @@ var (
 	MantleLocalChainId   = big.NewInt(1337)
 )
 
-// MantleBlockTime is the Mantle Hoodi L2 block time in seconds. The Hoodi BVM upgrade writes its
-// code in the first block that is active while the block one MantleBlockTime earlier is not.
-// If Hoodi's block time changes before the fork activates, update this value or pick an activation
-// time that equals a block timestamp. Must equal alloy-op-hardforks' MANTLE_HOODI_BLOCK_TIME.
+// MantleBlockTime is the Mantle L2 block time in seconds, the same on every Mantle network. The
+// rollup config's block time is authoritative for block production; this constant only lets the
+// Hoodi BVM upgrade write its code in the first block that is active while the block one
+// MantleBlockTime earlier is not. If the block time changes before the fork activates, update this
+// value or pick an activation time that equals a block timestamp. Must equal alloy-op-hardforks'
+// MANTLE_BLOCK_TIME.
 const MantleBlockTime uint64 = 2
 
 var (
@@ -48,9 +50,8 @@ var (
 		MantleElysiumTime:         nil,
 	}
 	// MantleHoodiUpgradeConfig carries Mantle Hoodi's fork times. Hoodi activated every fork up to
-	// Arsia at genesis. MantleHoodiBvmUpgradeTime must equal op-node's
-	// rollup.BundledMantleHoodiBVMUpgradeTime and alloy-op-hardforks'
-	// MANTLE_HOODI_BVM_UPGRADE_TIMESTAMP; it stays nil until scheduled.
+	// Arsia at genesis. op-node reads MantleHoodiBvmUpgradeTime from here; it must equal
+	// alloy-op-hardforks' MANTLE_HOODI_BVM_UPGRADE_TIMESTAMP and stays nil until scheduled.
 	MantleHoodiUpgradeConfig = MantleUpgradeChainConfig{
 		ChainID:                   MantleHoodiChainId,
 		BaseFeeTime:               u64Ptr(0),
