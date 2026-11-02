@@ -8,7 +8,7 @@ import (
 var (
 	MantleMainnetChainId = big.NewInt(5000)
 	MantleSepoliaChainId = big.NewInt(5003)
-	MantleHoodiChainId   = big.NewInt(50002)
+	MantleHoodiChainId   = big.NewInt(56004803)
 	MantleLocalChainId   = big.NewInt(1337)
 )
 
@@ -63,7 +63,7 @@ var (
 		MantleSkadiTime:           u64Ptr(0),
 		MantleLimbTime:            u64Ptr(0),
 		MantleArsiaTime:           u64Ptr(0),
-		MantleHoodiBvmUpgradeTime: nil,
+		MantleHoodiBvmUpgradeTime: u64Ptr(1793692800),
 		MantleElysiumTime:         nil,
 	}
 
