@@ -63,7 +63,7 @@ var (
 		MantleSkadiTime:           u64Ptr(0),
 		MantleLimbTime:            u64Ptr(0),
 		MantleArsiaTime:           u64Ptr(0),
-		MantleHoodiBvmUpgradeTime: u64Ptr(1793782800),
+		MantleHoodiBvmUpgradeTime: u64Ptr(1793862000),
 		MantleElysiumTime:         nil,
 	}
 
