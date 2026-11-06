@@ -18,71 +18,72 @@ import (
 // MarshalTOML marshals as TOML.
 func (c Config) MarshalTOML() (interface{}, error) {
 	type Config struct {
-		Genesis                      *core.Genesis `toml:",omitempty"`
-		NetworkId                    uint64
-		SyncMode                     SyncMode
-		HistoryMode                  history.HistoryMode
-		EthDiscoveryURLs             []string
-		SnapDiscoveryURLs            []string
-		NoPruning                    bool
-		NoPrefetch                   bool
-		TxLookupLimit                uint64 `toml:",omitempty"`
-		TransactionHistory           uint64 `toml:",omitempty"`
-		LogHistory                   uint64 `toml:",omitempty"`
-		LogNoHistory                 bool   `toml:",omitempty"`
-		LogExportCheckpoints         string
-		StateHistory                 uint64                 `toml:",omitempty"`
-		TrienodeHistory              int64                  `toml:",omitempty"`
-		NodeFullValueCheckpoint      uint32                 `toml:",omitempty"`
-		StateScheme                  string                 `toml:",omitempty"`
-		BinTrieGroupDepth            int                    `toml:",omitempty"`
-		RequiredBlocks               map[uint64]common.Hash `toml:"-"`
-		SlowBlockThreshold           time.Duration          `toml:",omitempty"`
-		SkipBcVersionCheck           bool                   `toml:"-"`
-		DatabaseHandles              int                    `toml:"-"`
-		DatabaseCache                int
-		DatabaseFreezer              string
-		DatabaseEra                  string
-		TrieCleanCache               int
-		TrieDirtyCache               int
-		TrieTimeout                  time.Duration
-		SnapshotCache                int
-		Preimages                    bool
-		FilterLogCacheSize           int
-		LogQueryLimit                int
-		Miner                        miner.Config
-		TxPool                       legacypool.Config
-		BlobPool                     blobpool.Config
-		GPO                          gasprice.Config
-		EnablePreimageRecording      bool
-		EnableWitnessStats           bool
-		StatelessSelfValidation      bool
-		EnableStateSizeTracking      bool
-		VMTrace                      string
-		VMTraceJsonConfig            string
-		RPCGasCap                    uint64
-		RPCEVMTimeout                time.Duration
-		RPCTxFeeCap                  float64
-		OverrideOsaka                *uint64       `toml:",omitempty"`
-		OverrideBPO1                 *uint64       `toml:",omitempty"`
-		OverrideBPO2                 *uint64       `toml:",omitempty"`
-		OverrideUBT                  *uint64       `toml:",omitempty"`
-		TxSyncDefaultTimeout         time.Duration `toml:",omitempty"`
-		TxSyncMaxTimeout             time.Duration `toml:",omitempty"`
-		RangeLimit                   uint64        `toml:",omitempty"`
-		OverrideOptimismBedrock      *big.Int
-		OverrideOptimismRegolith     *uint64 `toml:",omitempty"`
-		OverrideOptimism             *bool
-		OverrideMantleArsia          *uint64 `toml:",omitempty"`
-		OverrideMantleElysium        *uint64 `toml:",omitempty"`
-		ApplyMantleUpgrades          bool    `toml:",omitempty"`
-		RollupSequencerHTTP          string
-		RollupHistoricalRPC          string
-		RollupHistoricalRPCTimeout   time.Duration
-		RollupDisableTxPoolGossip    bool
-		RollupDisableTxPoolAdmission bool
-		InteropMessageRPC            string `toml:",omitempty"`
-		InteropMempoolFiltering      bool   `toml:",omitempty"`
+		Genesis                       *core.Genesis `toml:",omitempty"`
+		NetworkId                     uint64
+		SyncMode                      SyncMode
+		HistoryMode                   history.HistoryMode
+		EthDiscoveryURLs              []string
+		SnapDiscoveryURLs             []string
+		NoPruning                     bool
+		NoPrefetch                    bool
+		TxLookupLimit                 uint64 `toml:",omitempty"`
+		TransactionHistory            uint64 `toml:",omitempty"`
+		LogHistory                    uint64 `toml:",omitempty"`
+		LogNoHistory                  bool   `toml:",omitempty"`
+		LogExportCheckpoints          string
+		StateHistory                  uint64                 `toml:",omitempty"`
+		TrienodeHistory               int64                  `toml:",omitempty"`
+		NodeFullValueCheckpoint       uint32                 `toml:",omitempty"`
+		StateScheme                   string                 `toml:",omitempty"`
+		BinTrieGroupDepth             int                    `toml:",omitempty"`
+		RequiredBlocks                map[uint64]common.Hash `toml:"-"`
+		SlowBlockThreshold            time.Duration          `toml:",omitempty"`
+		SkipBcVersionCheck            bool                   `toml:"-"`
+		DatabaseHandles               int                    `toml:"-"`
+		DatabaseCache                 int
+		DatabaseFreezer               string
+		DatabaseEra                   string
+		TrieCleanCache                int
+		TrieDirtyCache                int
+		TrieTimeout                   time.Duration
+		SnapshotCache                 int
+		Preimages                     bool
+		FilterLogCacheSize            int
+		LogQueryLimit                 int
+		Miner                         miner.Config
+		TxPool                        legacypool.Config
+		BlobPool                      blobpool.Config
+		GPO                           gasprice.Config
+		EnablePreimageRecording       bool
+		EnableWitnessStats            bool
+		StatelessSelfValidation       bool
+		EnableStateSizeTracking       bool
+		VMTrace                       string
+		VMTraceJsonConfig             string
+		RPCGasCap                     uint64
+		RPCEVMTimeout                 time.Duration
+		RPCTxFeeCap                   float64
+		OverrideOsaka                 *uint64       `toml:",omitempty"`
+		OverrideBPO1                  *uint64       `toml:",omitempty"`
+		OverrideBPO2                  *uint64       `toml:",omitempty"`
+		OverrideUBT                   *uint64       `toml:",omitempty"`
+		TxSyncDefaultTimeout          time.Duration `toml:",omitempty"`
+		TxSyncMaxTimeout              time.Duration `toml:",omitempty"`
+		RangeLimit                    uint64        `toml:",omitempty"`
+		OverrideOptimismBedrock       *big.Int
+		OverrideOptimismRegolith      *uint64 `toml:",omitempty"`
+		OverrideOptimism              *bool
+		OverrideMantleArsia           *uint64 `toml:",omitempty"`
+		OverrideMantleElysium         *uint64 `toml:",omitempty"`
+		OverrideMantleHoodiBvmUpgrade *uint64 `toml:",omitempty"`
+		ApplyMantleUpgrades           bool    `toml:",omitempty"`
+		RollupSequencerHTTP           string
+		RollupHistoricalRPC           string
+		RollupHistoricalRPCTimeout    time.Duration
+		RollupDisableTxPoolGossip     bool
+		RollupDisableTxPoolAdmission  bool
+		InteropMessageRPC             string `toml:",omitempty"`
+		InteropMempoolFiltering       bool   `toml:",omitempty"`
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -142,6 +143,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.OverrideOptimism = c.OverrideOptimism
 	enc.OverrideMantleArsia = c.OverrideMantleArsia
 	enc.OverrideMantleElysium = c.OverrideMantleElysium
+	enc.OverrideMantleHoodiBvmUpgrade = c.OverrideMantleHoodiBvmUpgrade
 	enc.ApplyMantleUpgrades = c.ApplyMantleUpgrades
 	enc.RollupSequencerHTTP = c.RollupSequencerHTTP
 	enc.RollupHistoricalRPC = c.RollupHistoricalRPC
@@ -156,71 +158,72 @@ func (c Config) MarshalTOML() (interface{}, error) {
 // UnmarshalTOML unmarshals from TOML.
 func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
-		Genesis                      *core.Genesis `toml:",omitempty"`
-		NetworkId                    *uint64
-		SyncMode                     *SyncMode
-		HistoryMode                  *history.HistoryMode
-		EthDiscoveryURLs             []string
-		SnapDiscoveryURLs            []string
-		NoPruning                    *bool
-		NoPrefetch                   *bool
-		TxLookupLimit                *uint64 `toml:",omitempty"`
-		TransactionHistory           *uint64 `toml:",omitempty"`
-		LogHistory                   *uint64 `toml:",omitempty"`
-		LogNoHistory                 *bool   `toml:",omitempty"`
-		LogExportCheckpoints         *string
-		StateHistory                 *uint64                `toml:",omitempty"`
-		TrienodeHistory              *int64                 `toml:",omitempty"`
-		NodeFullValueCheckpoint      *uint32                `toml:",omitempty"`
-		StateScheme                  *string                `toml:",omitempty"`
-		BinTrieGroupDepth            *int                   `toml:",omitempty"`
-		RequiredBlocks               map[uint64]common.Hash `toml:"-"`
-		SlowBlockThreshold           *time.Duration         `toml:",omitempty"`
-		SkipBcVersionCheck           *bool                  `toml:"-"`
-		DatabaseHandles              *int                   `toml:"-"`
-		DatabaseCache                *int
-		DatabaseFreezer              *string
-		DatabaseEra                  *string
-		TrieCleanCache               *int
-		TrieDirtyCache               *int
-		TrieTimeout                  *time.Duration
-		SnapshotCache                *int
-		Preimages                    *bool
-		FilterLogCacheSize           *int
-		LogQueryLimit                *int
-		Miner                        *miner.Config
-		TxPool                       *legacypool.Config
-		BlobPool                     *blobpool.Config
-		GPO                          *gasprice.Config
-		EnablePreimageRecording      *bool
-		EnableWitnessStats           *bool
-		StatelessSelfValidation      *bool
-		EnableStateSizeTracking      *bool
-		VMTrace                      *string
-		VMTraceJsonConfig            *string
-		RPCGasCap                    *uint64
-		RPCEVMTimeout                *time.Duration
-		RPCTxFeeCap                  *float64
-		OverrideOsaka                *uint64        `toml:",omitempty"`
-		OverrideBPO1                 *uint64        `toml:",omitempty"`
-		OverrideBPO2                 *uint64        `toml:",omitempty"`
-		OverrideUBT                  *uint64        `toml:",omitempty"`
-		TxSyncDefaultTimeout         *time.Duration `toml:",omitempty"`
-		TxSyncMaxTimeout             *time.Duration `toml:",omitempty"`
-		RangeLimit                   *uint64        `toml:",omitempty"`
-		OverrideOptimismBedrock      *big.Int
-		OverrideOptimismRegolith     *uint64 `toml:",omitempty"`
-		OverrideOptimism             *bool
-		OverrideMantleArsia          *uint64 `toml:",omitempty"`
-		OverrideMantleElysium        *uint64 `toml:",omitempty"`
-		ApplyMantleUpgrades          *bool   `toml:",omitempty"`
-		RollupSequencerHTTP          *string
-		RollupHistoricalRPC          *string
-		RollupHistoricalRPCTimeout   *time.Duration
-		RollupDisableTxPoolGossip    *bool
-		RollupDisableTxPoolAdmission *bool
-		InteropMessageRPC            *string `toml:",omitempty"`
-		InteropMempoolFiltering      *bool   `toml:",omitempty"`
+		Genesis                       *core.Genesis `toml:",omitempty"`
+		NetworkId                     *uint64
+		SyncMode                      *SyncMode
+		HistoryMode                   *history.HistoryMode
+		EthDiscoveryURLs              []string
+		SnapDiscoveryURLs             []string
+		NoPruning                     *bool
+		NoPrefetch                    *bool
+		TxLookupLimit                 *uint64 `toml:",omitempty"`
+		TransactionHistory            *uint64 `toml:",omitempty"`
+		LogHistory                    *uint64 `toml:",omitempty"`
+		LogNoHistory                  *bool   `toml:",omitempty"`
+		LogExportCheckpoints          *string
+		StateHistory                  *uint64                `toml:",omitempty"`
+		TrienodeHistory               *int64                 `toml:",omitempty"`
+		NodeFullValueCheckpoint       *uint32                `toml:",omitempty"`
+		StateScheme                   *string                `toml:",omitempty"`
+		BinTrieGroupDepth             *int                   `toml:",omitempty"`
+		RequiredBlocks                map[uint64]common.Hash `toml:"-"`
+		SlowBlockThreshold            *time.Duration         `toml:",omitempty"`
+		SkipBcVersionCheck            *bool                  `toml:"-"`
+		DatabaseHandles               *int                   `toml:"-"`
+		DatabaseCache                 *int
+		DatabaseFreezer               *string
+		DatabaseEra                   *string
+		TrieCleanCache                *int
+		TrieDirtyCache                *int
+		TrieTimeout                   *time.Duration
+		SnapshotCache                 *int
+		Preimages                     *bool
+		FilterLogCacheSize            *int
+		LogQueryLimit                 *int
+		Miner                         *miner.Config
+		TxPool                        *legacypool.Config
+		BlobPool                      *blobpool.Config
+		GPO                           *gasprice.Config
+		EnablePreimageRecording       *bool
+		EnableWitnessStats            *bool
+		StatelessSelfValidation       *bool
+		EnableStateSizeTracking       *bool
+		VMTrace                       *string
+		VMTraceJsonConfig             *string
+		RPCGasCap                     *uint64
+		RPCEVMTimeout                 *time.Duration
+		RPCTxFeeCap                   *float64
+		OverrideOsaka                 *uint64        `toml:",omitempty"`
+		OverrideBPO1                  *uint64        `toml:",omitempty"`
+		OverrideBPO2                  *uint64        `toml:",omitempty"`
+		OverrideUBT                   *uint64        `toml:",omitempty"`
+		TxSyncDefaultTimeout          *time.Duration `toml:",omitempty"`
+		TxSyncMaxTimeout              *time.Duration `toml:",omitempty"`
+		RangeLimit                    *uint64        `toml:",omitempty"`
+		OverrideOptimismBedrock       *big.Int
+		OverrideOptimismRegolith      *uint64 `toml:",omitempty"`
+		OverrideOptimism              *bool
+		OverrideMantleArsia           *uint64 `toml:",omitempty"`
+		OverrideMantleElysium         *uint64 `toml:",omitempty"`
+		OverrideMantleHoodiBvmUpgrade *uint64 `toml:",omitempty"`
+		ApplyMantleUpgrades           *bool   `toml:",omitempty"`
+		RollupSequencerHTTP           *string
+		RollupHistoricalRPC           *string
+		RollupHistoricalRPCTimeout    *time.Duration
+		RollupDisableTxPoolGossip     *bool
+		RollupDisableTxPoolAdmission  *bool
+		InteropMessageRPC             *string `toml:",omitempty"`
+		InteropMempoolFiltering       *bool   `toml:",omitempty"`
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -396,6 +399,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.OverrideMantleElysium != nil {
 		c.OverrideMantleElysium = dec.OverrideMantleElysium
+	}
+	if dec.OverrideMantleHoodiBvmUpgrade != nil {
+		c.OverrideMantleHoodiBvmUpgrade = dec.OverrideMantleHoodiBvmUpgrade
 	}
 	if dec.ApplyMantleUpgrades != nil {
 		c.ApplyMantleUpgrades = *dec.ApplyMantleUpgrades

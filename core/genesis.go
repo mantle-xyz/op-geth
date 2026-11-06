@@ -308,9 +308,11 @@ type ChainOverrides struct {
 	OverrideOptimism         *bool
 
 	// mantle
-	OverrideMantleArsia   *uint64
-	OverrideMantleElysium *uint64
-	ApplyMantleUpgrades   bool
+	OverrideMantleArsia *uint64
+	// OverrideMantleHoodiBvmUpgrade sets the Mantle Hoodi BVM upgrade time.
+	OverrideMantleHoodiBvmUpgrade *uint64
+	OverrideMantleElysium         *uint64
+	ApplyMantleUpgrades           bool
 }
 
 // apply applies the chain overrides on the supplied chain config.
@@ -361,11 +363,15 @@ func (o *ChainOverrides) apply(cfg *params.ChainConfig) error {
 			cfg.MantleSkadiTime = mantleUpgradeChainConfig.MantleSkadiTime
 			cfg.MantleLimbTime = mantleUpgradeChainConfig.MantleLimbTime
 			cfg.MantleArsiaTime = mantleUpgradeChainConfig.MantleArsiaTime
+			cfg.MantleHoodiBvmUpgradeTime = mantleUpgradeChainConfig.MantleHoodiBvmUpgradeTime
 			cfg.MantleElysiumTime = mantleUpgradeChainConfig.MantleElysiumTime
 		}
 
 		if o.OverrideMantleArsia != nil {
 			cfg.MantleArsiaTime = o.OverrideMantleArsia
+		}
+		if o.OverrideMantleHoodiBvmUpgrade != nil {
+			cfg.MantleHoodiBvmUpgradeTime = o.OverrideMantleHoodiBvmUpgrade
 		}
 		if o.OverrideMantleElysium != nil {
 			cfg.MantleElysiumTime = o.OverrideMantleElysium

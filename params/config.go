@@ -522,6 +522,10 @@ type ChainConfig struct {
 	MantleArsiaTime       *uint64 `json:"mantleArsiaTime,omitempty"`       // MantleArsiaTime switch time ( nil = no fork, 0 = already forked)
 	MantleElysiumTime     *uint64 `json:"mantleElysiumTime,omitempty"`     // MantleElysiumTime switch time ( nil = no fork, 0 = already forked)
 
+	// MantleHoodiBvmUpgradeTime activates the Mantle Hoodi BVM upgrade, an irregular state
+	// transition that writes the BVM_ETH and LegacyERC20MNT code (nil = no fork). Hoodi only.
+	MantleHoodiBvmUpgradeTime *uint64 `json:"mantleHoodiBvmUpgradeTime,omitempty"`
+
 	// TerminalTotalDifficulty is the amount of total difficulty reached by
 	// the network that triggers the consensus upgrade.
 	TerminalTotalDifficulty *big.Int `json:"terminalTotalDifficulty,omitempty"`
@@ -702,6 +706,9 @@ func (c *ChainConfig) String() string {
 	if c.MantleElysiumTime != nil {
 		result += fmt.Sprintf(", MantleElysiumTime: %v", *c.MantleElysiumTime)
 	}
+	if c.MantleHoodiBvmUpgradeTime != nil {
+		result += fmt.Sprintf(", MantleHoodiBvmUpgradeTime: %v", *c.MantleHoodiBvmUpgradeTime)
+	}
 	result += "}"
 	return result
 }
@@ -834,6 +841,9 @@ func (c *ChainConfig) Description() string {
 	}
 	if c.MantleElysiumTime != nil {
 		banner += fmt.Sprintf(" - Mantle Elysium:              @%-10v\n", *c.MantleElysiumTime)
+	}
+	if c.MantleHoodiBvmUpgradeTime != nil {
+		banner += fmt.Sprintf(" - Mantle Hoodi BVM Upgrade:    @%-10v\n", *c.MantleHoodiBvmUpgradeTime)
 	}
 
 	banner += fmt.Sprintf("\nAll fork specifications can be found at https://ethereum.github.io/execution-specs/src/ethereum/forks/\n")
@@ -1094,6 +1104,12 @@ func (c *ChainConfig) IsMantleElysium(time uint64) bool {
 
 func (c *ChainConfig) IsOptimismWithElysium(time uint64) bool {
 	return c.IsOptimism() && c.IsMantleElysium(time)
+}
+
+// IsMantleHoodiBvmUpgrade returns whether time is either equal to the Mantle Hoodi BVM upgrade
+// time or greater.
+func (c *ChainConfig) IsMantleHoodiBvmUpgrade(time uint64) bool {
+	return isTimestampForked(c.MantleHoodiBvmUpgradeTime, time)
 }
 
 // IsProxyOwnerUpgrade returns whether time is either equal to the ProxyOwnerUpgrade fork time
@@ -1381,6 +1397,9 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, headNumber *big.Int, 
 	}
 	if isForkTimestampIncompatible(c.MantleElysiumTime, newcfg.MantleElysiumTime, headTimestamp, genesisTimestamp) {
 		return newTimestampCompatError("Mantle Elysium fork timestamp", c.MantleElysiumTime, newcfg.MantleElysiumTime)
+	}
+	if isForkTimestampIncompatible(c.MantleHoodiBvmUpgradeTime, newcfg.MantleHoodiBvmUpgradeTime, headTimestamp, genesisTimestamp) {
+		return newTimestampCompatError("Mantle Hoodi BVM upgrade timestamp", c.MantleHoodiBvmUpgradeTime, newcfg.MantleHoodiBvmUpgradeTime)
 	}
 	return nil
 }
