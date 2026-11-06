@@ -51,7 +51,7 @@ var (
 	}
 	// MantleHoodiUpgradeConfig carries Mantle Hoodi's fork times. Hoodi activated every fork up to
 	// Arsia at genesis. op-node reads MantleHoodiBvmUpgradeTime from here; it must equal
-	// alloy-op-hardforks' MANTLE_HOODI_BVM_UPGRADE_TIMESTAMP and stays nil until scheduled.
+	// alloy-op-hardforks' MANTLE_HOODI_BVM_UPGRADE_TIMESTAMP.
 	MantleHoodiUpgradeConfig = MantleUpgradeChainConfig{
 		ChainID:                   MantleHoodiChainId,
 		BaseFeeTime:               u64Ptr(0),
@@ -63,7 +63,7 @@ var (
 		MantleSkadiTime:           u64Ptr(0),
 		MantleLimbTime:            u64Ptr(0),
 		MantleArsiaTime:           u64Ptr(0),
-		MantleHoodiBvmUpgradeTime: nil,
+		MantleHoodiBvmUpgradeTime: u64Ptr(1_794_380_400),
 		MantleElysiumTime:         nil,
 	}
 
